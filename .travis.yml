@@ -15,13 +15,13 @@ services:
 
 script: |
  set -eux &&
- name_and_tag="$DOCKER_USERNAME"/cxx-modules-sandbox:latest
+ public_name="$DOCKER_USERNAME/$DOCKER_IMAGE"
  log=$(mktemp) # log to a file because travis rejects having big logs
  # also, emit a message periodically otherwise travis thinks the build stalled and kills it
  (while :; do sleep 5m; tail -n10 $log; done) &
  log_pid=$!
  # build the image
- if ! docker image build --cache-from "$name_and_tag" -t "$name_and_tag" . &> $log
+ if ! docker image build --cache-from "$public_name" -t "$public_name" . &> $log
  then
   # on failure, print tail of log before bailing out
   error=$!
@@ -33,5 +33,5 @@ script: |
  kill $log_pid
  # publish the image
  printf '%s' "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
- docker image push "$name_and_tag"
+ docker image push "$public_name"
  
